@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
 	xmlns:util="http://www.springframework.org/schema/util" xmlns:jaxrs="http://cxf.apache.org/jaxrs"
-	xmlns:cxf="http://cxf.apache.org/core"
+	xmlns:cxf="http://cxf.apache.org/core" xmlns:security="http://www.springframework.org/schema/security"
 	xsi:schemaLocation="
 	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
@@ -11,6 +11,7 @@
 	http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
 	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
 	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
 	http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
 
 	<context:annotation-config />
@@ -82,19 +83,13 @@
 		</cxf:properties>
 	</cxf:bus>
 
-	<bean id="cors-filter"
-		class="org.apache.cxf.rs.security.cors.CrossOriginResourceSharingFilter" />
-	<bean id="cors-server" scope="prototype"
-		class="org.apache.cxf.systest.jaxrs.cors.AnnotatedCorsServer" />
 	<!-- Jax-rs services -->
 	<jaxrs:server address="/service">
 		<jaxrs:serviceBeans>
 			<ref bean="userWebService" />
-			<ref bean="cors-server" />
 		</jaxrs:serviceBeans>
 		<jaxrs:providers>
 			<ref bean="jsonProvider"></ref>
-			<ref bean="cors-filter" />
 		</jaxrs:providers>
 		<jaxrs:extensionMappings>
 			<entry key="json" value="application/json" />
@@ -119,4 +114,17 @@
 
 	<!-- Dao beans -->
 	<bean class="com.example.rest.dao.UserDaoImpl" id="userDao"></bean>
+
+	<security:http>
+		<security:http-basic></security:http-basic>
+		<security:intercept-url pattern="/**" access="ROLE_USER" />
+	</security:http>
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider>
+			<security:user-service>
+				<security:user name="admin" password="admin123"
+					authorities="ROLE_USER" />
+			</security:user-service>
+		</security:authentication-provider>
+	</security:authentication-manager>
 </beans>
